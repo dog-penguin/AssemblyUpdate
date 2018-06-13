@@ -7,7 +7,8 @@ param
 # This GUID is unique and belongs to AssemblyInfo.csproj, it is stored in a .csproj file
 $AssemblyInfoOrignalGUIDUpper = "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}"
 # E.g.[assembly: AssemblyInformationalVersion(AssemblyInfo.ProductVersion)]
-$ProductVersionPattern = "assembly: AssemblyInformationalVersion"
+$ProductVersionKeyword = "assembly: AssemblyInformationalVersion"
+$ProductVersionCode = "[assembly: AssemblyInformationalVersion(PSWGS.Common.AssemblyInfo.ProductVersion)]"
 
 $script:CurrentPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
@@ -51,7 +52,9 @@ function Entry {
 
             # So test two regular path, to find the AssemblyInfo.cs file.
             if (Test-Path $SingleAssemblyInfoPath) {
-                if ((Get-Content $SingleAssemblyInfoPath).Contains($ProductVersionPattern)) {
+                $AssmblyInfoContent = Get-Content -Path $SingleAssemblyInfoPath
+
+                if ($AssmblyInfoContent -like "*$ProductVersionKeyword*") {
                     "**$line**" >> UpateProductVersionLog.log
                     "Current project has referred the Product version from common AssemblyInfo.cs" >> UpateProductVersionLog.log
                     Write-Host "$line" -ForegroundColor Green
@@ -60,11 +63,13 @@ function Entry {
                     "**$line**" >> UpateProductVersionLog.log
                     "Refers the Product version from common AssemblyInfo.cs to current project" >> UpateProductVersionLog.log
                     & "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\TF.exe" checkout $SingleAssemblyInfoPath | Out-Null
-                    Add-Content -Path $SingleAssemblyInfoPath -Value "`r`n$ProductVersionPattern" | Out-Null
+                    Add-Content -Path $SingleAssemblyInfoPath -Value "`r`n$ProductVersionCode" | Out-Null
                 }
             }
             elseif (Test-Path $AssemblyInfoNotLocaInPropertiesFolder) {
-                if ((Get-Content $AssemblyInfoNotLocaInPropertiesFolder).Contains($ProductVersionPattern)) {
+                $AssmblyInfoContent = Get-Content -Path $AssemblyInfoNotLocaInPropertiesFolder
+
+                if ($AssmblyInfoContent -like "*$ProductVersionKeyword*") {
                     "**$line**" >> UpateProductVersionLog.log
                     "Current project has referred the Product version from common AssemblyInfo.cs" >> UpateProductVersionLog.log
                     Write-Host "$line" -ForegroundColor Green
@@ -73,7 +78,7 @@ function Entry {
                     "**$line**" >> UpateProductVersionLog.log
                     "Refers the Product version from common AssemblyInfo.cs to current project" >> UpateProductVersionLog.log
                     & "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\TF.exe" checkout $AssemblyInfoNotLocaInPropertiesFolder | Out-Null
-                    Add-Content -Path $AssemblyInfoNotLocaInPropertiesFolder -Value "`r`n$ProductVersionPattern" | Out-Null
+                    Add-Content -Path $AssemblyInfoNotLocaInPropertiesFolder -Value "`r`n$ProductVersionCode" | Out-Null
                 }
             }
             else {
